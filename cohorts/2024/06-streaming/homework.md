@@ -42,6 +42,14 @@ Find out what you need to execute based on the `help` output.
 What's the version, based on the output of the command you executed? (copy the entire version)
 
 
+## Answer 1:
+
+```bash
+redpanda@edac80701112:/$ rpk version
+v22.3.5 (rev 28b2443)
+```
+
+
 ## Question 2. Creating a topic
 
 Before we can send data to the redpanda server, we
@@ -52,6 +60,15 @@ redpandas.
 Read the output of `help` and based on it, create a topic with name `test-topic` 
 
 What's the output of the command for creating a topic? Include the entire output in your answer.
+
+
+## Answer 2:
+
+```bash
+redpanda@edac80701112:/$ rpk topic create test-topic
+TOPIC       STATUS
+test-topic  OK
+```
 
 
 ## Question 3. Connecting to the Kafka server
@@ -93,6 +110,12 @@ producer.bootstrap_connected()
 Provided that you can connect to the server, what's the output
 of the last command?
 
+
+Answer 3:
+
+```python
+True
+```
 
 ## Question 4. Sending data to the stream
 
