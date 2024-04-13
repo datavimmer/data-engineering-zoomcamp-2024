@@ -189,6 +189,10 @@ Note: this way of iterating over the records is more efficient compared
 to `iterrows`
 
 
+## Answer 4:
+
+Sending the messages
+
 ## Question 5: Sending the Trip Data
 
 * Create a topic `green-trips` and send the data there
@@ -262,6 +266,11 @@ from the stream
 query.stop()
 ```
 
+## Answer 5:
+
+47
+
+
 ## Question 6. Parsing the data
 
 The data is JSON, but currently it's in binary format. We need
@@ -328,6 +337,10 @@ query.awaitTermination()
 
 Write the most popular destination, your answer should be *either* the zone ID or the zone name of this destination. (You will need to re-send the data for this to work)
 
+
+## Answer 7:
+
+74
 
 ## Submitting the solutions
 
