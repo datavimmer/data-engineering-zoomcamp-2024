@@ -21,12 +21,14 @@ t0 = time.time()
 
 topic_name = 'green-trips'
 
-from pyspark.sql import SparkSession
+# from pyspark.sql import SparkSession
+import pandas as pd
+
 
 # Initialize a Spark session
-spark = SparkSession.builder \
-    .appName("Taxi Data Processing") \
-    .getOrCreate()
+# spark = SparkSession.builder \
+#     .appName("Taxi Data Processing") \
+#     .getOrCreate()
 
 # Path to the gzipped CSV file
 file_path = "/Users/jack/dev/data-engineering-zoomcamp-2024/data/green_tripdata_2019-10.csv.gz"
@@ -43,11 +45,13 @@ columns = [
 ]
 
 # Reading the gzipped CSV with only the required columns
-df_green = spark.read.option("header", "true").csv(file_path).select(columns)
+df_green = pd.read_csv(file_path, usecols=columns)
+
+# df_green = spark.read.option("header", "true").csv(file_path).select(columns)
 
 for row in df_green.itertuples(index=False):
     row_dict = {col: getattr(row, col) for col in row._fields}
-    message = json_serializer(row_dict)
+    message = row_dict  # json_serializer(row_dict)
     print(row_dict)
     producer.send(topic_name, value=message)
     print(f"Sent: {message}")
