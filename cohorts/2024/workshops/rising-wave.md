@@ -134,7 +134,45 @@ Options:
 3. East Flatbush/Farragut, East Harlem North
 4. Midtown Center, University Heights/Morris Heights
 
+
+Answer 1:
+1. Yorkville East, Steinway
+
+```
+CREATE MATERIALIZED VIEW taxi_zone_trip_stats AS
+    SELECT 
+        t1.Zone AS pickup_zone, 
+        t2.Zone AS dropoff_zone, 
+        AVG(EXTRACT(EPOCH FROM (trip_data.tpep_dropoff_datetime - trip_data.tpep_pickup_datetime))/60) AS avg_trip_time_minutes,
+        MIN(EXTRACT(EPOCH FROM (trip_data.tpep_dropoff_datetime - trip_data.tpep_pickup_datetime))/60) AS min_trip_time_minutes,
+        MAX(EXTRACT(EPOCH FROM (trip_data.tpep_dropoff_datetime - trip_data.tpep_pickup_datetime))/60) AS max_trip_time_minutes
+    FROM 
+        trip_data
+        JOIN taxi_zone t1 ON trip_data.PULocationID = t1.location_id
+        JOIN taxi_zone t2 ON trip_data.DOLocationID = t2.location_id
+    GROUP BY 
+        t1.Zone, 
+        t2.Zone;
+
+SELECT 
+    pickup_zone, 
+    dropoff_zone, 
+    avg_trip_time
+FROM 
+    taxi_zone_trip_stats
+ORDER BY 
+    avg_trip_time DESC
+LIMIT 1;
+
+  pickup_zone   | dropoff_zone | avg_trip_time_minutes
+----------------+--------------+-----------------------
+ Yorkville East | Steinway     |           1439.550000
+
+```
+
+
 p.s. The trip time between taxi zones does not take symmetricity into account, i.e. `A -> B` and `B -> A` are considered different trips. This applies to subsequent questions as well.
+
 
 ### Question 2
 
@@ -145,6 +183,43 @@ Options:
 2. 3
 3. 10
 4. 1
+
+Answer 2:
+4. 1
+
+```
+CREATE MATERIALIZED VIEW taxi_zone_trip_stats_2 AS
+    SELECT 
+        t1.Zone AS pickup_zone, 
+        t2.Zone AS dropoff_zone, 
+        AVG(EXTRACT(EPOCH FROM (trip_data.tpep_dropoff_datetime - trip_data.tpep_pickup_datetime))/60) AS avg_trip_time_minutes,
+        MIN(EXTRACT(EPOCH FROM (trip_data.tpep_dropoff_datetime - trip_data.tpep_pickup_datetime))/60) AS min_trip_time_minutes,
+        MAX(EXTRACT(EPOCH FROM (trip_data.tpep_dropoff_datetime - trip_data.tpep_pickup_datetime))/60) AS max_trip_time_minutes,
+        COUNT(*) AS num_trips
+    FROM 
+        trip_data
+        JOIN taxi_zone t1 ON trip_data.PULocationID = t1.location_id
+        JOIN taxi_zone t2 ON trip_data.DOLocationID = t2.location_id
+    GROUP BY 
+        t1.Zone, 
+        t2.Zone;
+		
+SELECT 
+    pickup_zone, 
+    dropoff_zone, 
+    avg_trip_time_minutes,
+    num_trips
+FROM 
+    taxi_zone_trip_stats_2
+ORDER BY 
+    avg_trip_time_minutes DESC
+LIMIT 1;
+
+  pickup_zone   | dropoff_zone | avg_trip_time_minutes | num_trips
+----------------+--------------+-----------------------+-----------
+ Yorkville East | Steinway     |           1439.550000 |         1
+
+```
 
 ### Question 3
 
@@ -163,6 +238,43 @@ Options:
 3. Midtown Center, Upper East Side South, Upper East Side North
 4. LaGuardia Airport, Midtown Center, Upper East Side North
 
+Answer 3:
+2. LaGuardia Airport, Lincoln Square East, JFK Airport
+
+```
+WITH LatestPickup AS (
+    SELECT MAX(tpep_pickup_datetime) AS latest_pickup_time
+    FROM trip_data
+),
+FilteredTrips AS (
+    SELECT 
+        t1.Zone AS pickup_zone,
+        COUNT(*) AS num_pickups
+    FROM 
+        trip_data
+        JOIN taxi_zone t1 ON trip_data.PULocationID = t1.location_id,
+        LatestPickup
+    WHERE 
+        trip_data.tpep_pickup_datetime BETWEEN (LatestPickup.latest_pickup_time - INTERVAL '17 HOURS') AND LatestPickup.latest_pickup_time
+    GROUP BY 
+        t1.Zone
+)
+SELECT 
+    pickup_zone, 
+    num_pickups
+FROM 
+    FilteredTrips
+ORDER BY 
+    num_pickups DESC
+LIMIT 3;
+
+     pickup_zone     | num_pickups
+---------------------+-------------
+ LaGuardia Airport   |          19
+ JFK Airport         |          17
+ Lincoln Square East |          17
+
+```
 
 ## Submitting the solutions
 
