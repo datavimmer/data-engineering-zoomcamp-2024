@@ -22,6 +22,13 @@ Question 1: What is count of records for the 2022 Green Taxi Data??
 - 1,936,423
 - 253,647
 
+Answer 1:
+```
+SELECT count(*) FROM `zoomcamp-dwh.hw3_taxi_green.green_taxi_data_2022`
+SELECT count(*) FROM `zoomcamp-dwh.hw3_taxi_green.native_green_taxi_data_2022`
+- 840,402
+```
+
 ## Question 2:
 Write a query to count the distinct number of PULocationIDs for the entire dataset on both the tables.</br> 
 What is the estimated amount of data that will be read when this query is executed on the External Table and the Table?
@@ -31,6 +38,13 @@ What is the estimated amount of data that will be read when this query is execut
 - 0 MB for the External Table and 0MB for the Materialized Table
 - 2.14 MB for the External Table and 0MB for the Materialized Table
 
+Answer 2:
+```
+SELECT count(distinct PULocationID) FROM `zoomcamp-dwh.hw3_taxi_green.green_taxi_data_2022`;
+> 0 B
+SELECT count(distinct PULocationID) FROM `zoomcamp-dwh.hw3_taxi_green.native_green_taxi_data_2022`;
+> 6.41 MB
+```
 
 ## Question 3:
 How many records have a fare_amount of 0?
@@ -39,6 +53,14 @@ How many records have a fare_amount of 0?
 - 112
 - 1,622
 
+Answer 3:
+```
+SELECT count(*) FROM `zoomcamp-dwh.hw3_taxi_green.green_taxi_data_2022` 
+where fare_amount = 0
+LIMIT 1000;
+- 1,622
+```
+
 ## Question 4:
 What is the best strategy to make an optimized table in Big Query if your query will always order the results by PUlocationID and filter based on lpep_pickup_datetime? (Create a new table with this strategy)
 - Cluster on lpep_pickup_datetime Partition by PUlocationID
@@ -46,6 +68,15 @@ What is the best strategy to make an optimized table in Big Query if your query 
 - Partition by lpep_pickup_datetime and Partition by PUlocationID
 - Cluster on by lpep_pickup_datetime and Cluster on PUlocationID
 
+Answer 4:
+```
+CREATE TABLE `zoomcamp-dwh.hw3_taxi_green.native_part_2022`
+PARTITION BY DATE(lpep_pickup_datetime)
+CLUSTER BY PUlocationID AS
+SELECT *
+FROM `zoomcamp-dwh.hw3_taxi_green.native_green_taxi_data_2022`;
+- Partition by lpep_pickup_datetime  Cluster on PUlocationID
+```
 ## Question 5:
 Write a query to retrieve the distinct PULocationID between lpep_pickup_datetime
 06/01/2022 and 06/30/2022 (inclusive)</br>
@@ -59,6 +90,21 @@ Choose the answer which most closely matches.</br>
 - 5.63 MB for non-partitioned table and 0 MB for the partitioned table
 - 10.31 MB for non-partitioned table and 10.31 MB for the partitioned table
 
+Answer 5:
+```
+SELECT DISTINCT PULocationID
+FROM `zoomcamp-dwh.hw3_taxi_green.native_green_taxi_data_2022`
+WHERE lpep_pickup_datetime >= '2022-06-01 00:00:00'
+AND lpep_pickup_datetime <= '2022-06-30 23:59:59'
+ORDER BY PULocationID;
+- 12.82 MB
+SELECT DISTINCT PULocationID
+FROM `zoomcamp-dwh.hw3_taxi_green.native_part_2022`
+WHERE lpep_pickup_datetime >= '2022-06-01 00:00:00'
+AND lpep_pickup_datetime <= '2022-06-30 23:59:59'
+ORDER BY PULocationID;
+- 1.12 MB
+```
 
 ## Question 6: 
 Where is the data stored in the External Table you created?
@@ -68,12 +114,19 @@ Where is the data stored in the External Table you created?
 - Big Table
 - Container Registry
 
+Answer 6:
+```
+- GCP Bucket
+```
 
 ## Question 7:
 It is best practice in Big Query to always cluster your data:
 - True
 - False
 
+```
+- False
+```
 
 ## (Bonus: Not worth points) Question 8:
 No Points: Write a `SELECT count(*)` query FROM the materialized table you created. How many bytes does it estimate will be read? Why?
