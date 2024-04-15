@@ -1,0 +1,61 @@
+from mage_ai.data_cleaner.transformer_actions.base import BaseAction
+from mage_ai.data_cleaner.transformer_actions.constants import ActionType, Axis
+from mage_ai.data_cleaner.transformer_actions.utils import build_transformer_action
+from pandas import DataFrame
+
+import re
+
+
+if 'transformer' not in globals():
+    from mage_ai.data_preparation.decorators import transformer
+if 'test' not in globals():
+    from mage_ai.data_preparation.decorators import test
+
+
+@transformer
+def remove_invalid_rows(df: DataFrame, *args, **kwargs) -> DataFrame:
+    # Find indices of rows to remove
+    invalid_rows_indices = df.index[(df['passenger_count'] == 0) | (df['trip_distance'] == 0)].tolist()
+    
+    # Build and execute the REMOVE action
+    action = build_transformer_action(
+        df,
+        action_type=ActionType.REMOVE,
+        axis=Axis.ROW,
+        options={'rows': invalid_rows_indices},
+    )
+    
+    return BaseAction(action).execute(df)
+
+
+@transformer
+def add_lpep_pickup_date(df: DataFrame, *args, **kwargs) -> DataFrame:
+    df['lpep_pickup_date'] = df['lpep_pickup_datetime'].dt.date
+    return df
+
+
+@transformer
+def rename_columns_to_snake_case(df: DataFrame, *args, **kwargs) -> DataFrame:
+    # Convert CamelCase to snake_case
+        print(df.info())
+
+    df.columns = (df.columns
+                .str.replace('(?<=[a-z])(?=[A-Z])', '_', regex=True)
+                .str.lower()
+             )
+    return df
+
+
+@test
+def test_output(output, *args) -> None:
+    """
+    Template code for testing the output of the block.
+    """
+    assert output is not None, 'The output is undefined'
+
+    assert output['vendor_id'].isin([1, 2]).all(), "Invalid vendor_id values"
+    assert (output['passenger_count'] > 0).all(), "Invalid passenger_count values"
+    assert (output['trip_distance'] > 0).all(), "Invalid trip_distance values"
+    # Check for the new column and renamed columns
+    assert 'lpep_pickup_date' in output.columns, "lpep_pickup_date column missing"
+    assert 'vendor_id' in output.columns, "Column names have not been converted to snake_case"
